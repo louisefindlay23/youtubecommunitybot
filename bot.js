@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const token = process.env.BOT_TOKEN;
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const axios = require("axios");
@@ -28,9 +28,20 @@ client.once("ready", () => {
             data = JSON.parse(data);
             data.items[0].community.forEach((post) => {
                 //console.info(post);
-                const postText = post.contentText[0].text;
                 // Send Discord message to channel
-                channel.send(postText);
+                const postText = post.contentText[0].text;
+                if (post.image) {
+                    const imgURL = post.image.thumbnails[5].url;
+                    const reply = new EmbedBuilder()
+                        .setTitle("New YT Image Community Post")
+                        .setDescription(postText)
+                        .setImage(imgURL);
+                    channel.send({
+                        embeds: [reply],
+                    });
+                } else {
+                    //channel.send(postText);
+                }
             });
         })
         .catch(function (error) {

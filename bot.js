@@ -3,42 +3,39 @@ require("dotenv").config();
 const { Client, GatewayIntentBits } = require("discord.js");
 const token = process.env.BOT_TOKEN;
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
 const axios = require("axios");
 
 client.once("ready", () => {
     console.info("Ready!");
-
+    // Get Discord Server Channel to post in
     const channel = client.guilds.cache
         .get(process.env.SERVER_ID)
         .client.channels.cache.get(process.env.CHANNEL_ID);
 
+    // YT API URL for Community Posts with Channel ID
     const URL = `${process.env.YT_API_URL}${process.env.YT_CHANNEL_ID}`;
 
+    // Axios GET Request
     axios
         .get(URL)
         .then(function (response) {
-            // handle success
-            console.log(response);
+            // Remove WAMP HTML from response
+            let data = response.data.substring(
+                response.data.lastIndexOf("</font>") + 1
+            );
+            data = data.split("\n").slice(1).join("\n");
+            // Parse JSON
+            data = JSON.parse(data);
+            data.items[0].community.forEach((post) => {
+                //console.info(post);
+                const postText = post.contentText[0].text;
+                // Send Discord message to channel
+                channel.send(postText);
+            });
         })
         .catch(function (error) {
-            // handle error
             console.log(error);
         });
-
-    /*  axios.get(URL).then(
-        (response) => {
-            console.info(response);
-        },
-        (err) => {
-            console.error(err);
-        }
-    ); */
-    //channel.send("content");
 });
-
-// Add code to get YT Community Poists
-
-// Add client reply bot
 
 client.login(token);

@@ -32,25 +32,33 @@ client.once("ready", () => {
                 if (post.image) {
                     const imgURL = post.image.thumbnails[5].url;
                     const imgEmbed = new EmbedBuilder()
-                        .setTitle("New YT Community Post")
+                        .setTitle("New YT Image Post")
                         .setDescription(postText)
                         .setImage(imgURL);
-                    /* channel.send({
+                    channel.send({
                         embeds: [imgEmbed],
-                    }); */
+                    });
                 } else if (post.poll) {
-                    //console.info(post.poll);
                     let choiceArray = [];
-                    //console.info(post.poll.choices[0]);
                     post.poll.choices.forEach((choice) => {
                         choiceArray.push(choice.text);
                     });
                     choiceArray = choiceArray.join("\n");
-                    channel.send(
-                        `**Poll Title:** ${postText} \n**Choices:** \n${choiceArray}\n**Total Votes:** ${post.poll.totalVotes}`
-                    );
+                    const pollEmbed = new EmbedBuilder()
+                        .setTitle("New YT Poll")
+                        .setDescription(
+                            `**Poll Title:** ${postText} \n**Choices:** \n${choiceArray}\n**Total Votes:** ${post.poll.totalVotes}`
+                        );
+                    channel.send({
+                        embeds: [pollEmbed],
+                    });
                 } else {
-                    //channel.send(postText);
+                    const textEmbed = new EmbedBuilder()
+                        .setTitle("New YT Post")
+                        .setDescription(postText);
+                    channel.send({
+                        embeds: [textEmbed],
+                    });
                 }
             });
         })

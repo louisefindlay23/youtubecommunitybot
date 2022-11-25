@@ -28,12 +28,18 @@ client.once("ready", () => {
             // Parse JSON
             data = JSON.parse(data);
             const communityPosts = data.items[0].community;
-            const lastTime = JSON.stringify(communityPosts[0].date);
+            let newTime = JSON.stringify(communityPosts[0].date);
             console.info(`Date of latest post is: ${lastTime}`);
             // TODO: Now keep previous time by moving this after send and compare new post date lastTime from API. Only send if newer.
-            fs.writeFile("lastPostTime.json", lastTime, function (err) {
+            fs.readFile("./lastPostTime.json", "utf8", (err, lastTime) => {
                 if (err) {
-                    console.info(err);
+                    console.error("File read failed:", err);
+                    return;
+                } else {
+                    console.info(
+                        `Date of latest post is: ${JSON.parse(lastTime)}`
+                    );
+                    // TODO: Find out how to compare 5 hours ago etc. time difference
                 }
             });
             communityPosts.forEach((post) => {
@@ -70,6 +76,12 @@ client.once("ready", () => {
                         embeds: [textEmbed],
                     }); */
                 }
+                // TODO: Check this updates
+                fs.writeFile("lastPostTime.json", lastTime, function (err) {
+                    if (err) {
+                        console.info(err);
+                    }
+                });
             });
         })
         .catch(function (error) {

@@ -28,28 +28,27 @@ client.once("ready", () => {
             // Parse JSON
             data = JSON.parse(data);
             const communityPosts = data.items[0].community;
-            let newTime = JSON.stringify(communityPosts[0].date);
-            let lastTime = null;
-            // TODO: Now compare new post date lastTime from API. Only send if newer.
-            fs.readFile("./lastPostTime.json", "utf8", (err, lastTime) => {
+            let newPostID = JSON.stringify(communityPosts[0].id);
+            let lastPostID = null;
+            // TODO: Now compare new post ID from API. Only send if newer.
+            fs.readFile("./lastPostID.json", "utf8", (err, lastPostID) => {
                 if (err) {
                     console.error("File read failed:", err);
                     return;
                 } else {
-                    lastTime = JSON.parse(lastTime);
-                    newTime = JSON.parse(newTime);
-                    console.info(`Date of previous post is: ${lastTime}`);
-                    console.info(`Date of latest post is: ${newTime}`);
+                    lastPostID = JSON.parse(lastPostID);
+                    newPostID = JSON.parse(newPostID);
+                    console.info(`ID of previous post is: ${lastPostID}`);
+                    console.info(`ID of latest post is: ${newPostID}`);
 
-                    // TODO: Find out how to compare 5 hours ago etc. time difference
-                    if (lastTime.includes("days")) {
-                        console.info("Days");
-                        lastTime = parseInt(lastTime.split(" ")[0]);
-                        newTime = parseInt(newTime.split(" ")[0]);
-                        if (lastTime > newTime) {
-                            postContent(communityPosts, newTime);
+                    // TODO: Find out how to compare IDs
+                    communityPosts.forEach((post, index) => {
+                        if (post.id === lastPostID) {
+                            console.info(index);
+                            const newPosts = communityPosts.slice(0, index);
+                            postContent(newPosts, newPostID);
                         }
-                    }
+                    });
                 }
             });
         })
@@ -57,55 +56,52 @@ client.once("ready", () => {
             console.log(error);
         });
 
-    function postContent(communityPost, newTime) {
-        const post = communityPost[0];
-        // Send Discord message to channel
-        const postText = post.contentText[0].text;
-        console.info(postText);
-        if (post.image) {
-            const imgURL = post.image.thumbnails[5].url;
-            const imgEmbed = new EmbedBuilder()
-                .setTitle("New YT Image")
-                .setDescription(postText)
-                .setImage(imgURL);
-            channel.send({
-                embeds: [imgEmbed],
-            });
-        } else if (post.poll) {
-            let choiceArray = [];
-            post.poll.choices.forEach((choice) => {
-                choiceArray.push(choice.text);
-            });
-            choiceArray = choiceArray.join("\n");
-            const pollEmbed = new EmbedBuilder()
-                .setTitle("New YT Poll")
-                .setDescription(
-                    `**Poll Title:** ${postText} \n**Choices:** \n${choiceArray}\n**Total Votes:** ${post.poll.totalVotes}`
-                );
-            channel.send({
-                embeds: [pollEmbed],
-            });
-        } else {
-            const textEmbed = new EmbedBuilder()
-                .setTitle("New YT Post")
-                .setDescription(postText);
-            channel.send({
-                embeds: [textEmbed],
-            });
-        }
-        // TODO: Check this updates
-        newTime = JSON.stringify(newTime);
-        fs.writeFile(
-            "lastPostTime.json",
-            JSON.stringify(post.date),
-            function (err) {
-                if (err) {
-                    console.info(err);
-                } else {
-                    console.info("Time written");
-                }
+    function postContent(newPosts, newPostID) {
+        newPosts.forEach((post) => {
+            // Send Discord message to channel
+            const postText = post.contentText[0].text;
+            console.info(postText);
+            if (post.image) {
+                const imgURL = post.image.thumbnails[5].url;
+                const imgEmbed = new EmbedBuilder()
+                    .setTitle("New YT Image")
+                    .setDescription(postText)
+                    .setImage(imgURL);
+                channel.send({
+                    embeds: [imgEmbed],
+                });
+            } else if (post.poll) {
+                let choiceArray = [];
+                post.poll.choices.forEach((choice) => {
+                    choiceArray.push(choice.text);
+                });
+                choiceArray = choiceArray.join("\n");
+                const pollEmbed = new EmbedBuilder()
+                    .setTitle("New YT Poll")
+                    .setDescription(
+                        `**Poll Title:** ${postText} \n**Choices:** \n${choiceArray}\n**Total Votes:** ${post.poll.totalVotes}`
+                    );
+                channel.send({
+                    embeds: [pollEmbed],
+                });
+            } else {
+                const textEmbed = new EmbedBuilder()
+                    .setTitle("New YT Post")
+                    .setDescription(postText);
+                channel.send({
+                    embeds: [textEmbed],
+                });
             }
-        );
+        });
+        // TODO: Check this updates
+        newPostID = JSON.stringify(newPostID);
+        fs.writeFile("lastPostID.json", newPostID, function (err) {
+            if (err) {
+                console.info(err);
+            } else {
+                console.info("ID written");
+            }
+        });
     }
 });
 

@@ -23,13 +23,7 @@ client.once("ready", () => {
         axios
             .get(URL)
             .then(function (response) {
-                // Remove WAMP HTML from response
-                let data = response.data.substring(
-                    response.data.lastIndexOf("</font>") + 1
-                );
-                data = data.split("\n").slice(1).join("\n");
-                // Parse JSON
-                data = JSON.parse(data);
+		let data = response.data;
                 const communityPosts = data.items[0].community;
                 let newPostID = JSON.stringify(communityPosts[0].id);
                 let lastPostID = null;

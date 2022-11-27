@@ -9,56 +9,61 @@ const fs = require("fs");
 client.once("ready", () => {
     console.info("Ready!");
     // Get Discord Server Channel to post in
+    // TODO: Get Server from Discord.js and Channel from User Input
     const channel = client.guilds.cache
         .get(process.env.SERVER_ID)
         .client.channels.cache.get(process.env.CHANNEL_ID);
-
     // YT API URL for Community Posts with Channel ID
     const URL = `${process.env.YT_API_URL}${process.env.YT_CHANNEL_ID}`;
+    // Call YT API every hour
+    setInterval(callAPI, 3600000);
 
     // Axios GET Request
-    axios
-        .get(URL)
-        .then(function (response) {
-            // Remove WAMP HTML from response
-            let data = response.data.substring(
-                response.data.lastIndexOf("</font>") + 1
-            );
-            data = data.split("\n").slice(1).join("\n");
-            // Parse JSON
-            data = JSON.parse(data);
-            const communityPosts = data.items[0].community;
-            let newPostID = JSON.stringify(communityPosts[0].id);
-            let lastPostID = null;
-            // TODO: Now compare new post ID from API. Only send if newer.
-            fs.readFile("./lastPostID.json", "utf8", (err, lastPostID) => {
-                if (err) {
-                    console.error("File read failed:", err);
-                    return;
-                } else {
-                    lastPostID = JSON.parse(lastPostID);
-                    newPostID = JSON.parse(newPostID);
-                    console.info(`ID of previous post is: ${lastPostID}`);
-                    console.info(`ID of latest post is: ${newPostID}`);
+    function callAPI() {
+        axios
+            .get(URL)
+            .then(function (response) {
+                // Remove WAMP HTML from response
+                let data = response.data.substring(
+                    response.data.lastIndexOf("</font>") + 1
+                );
+                data = data.split("\n").slice(1).join("\n");
+                // Parse JSON
+                data = JSON.parse(data);
+                const communityPosts = data.items[0].community;
+                let newPostID = JSON.stringify(communityPosts[0].id);
+                let lastPostID = null;
 
-                    // TODO: Find out how to compare IDs
-                    communityPosts.forEach((post, index) => {
-                        if (post.id === lastPostID) {
-                            console.info(index);
-                            const newPosts = communityPosts.slice(0, index);
-                            postContent(newPosts, newPostID);
-                        }
-                    });
-                }
+                // Read previous YT Post ID
+                fs.readFile("./lastPostID.json", "utf8", (err, lastPostID) => {
+                    if (err) {
+                        console.error("File read failed:", err);
+                        return;
+                    } else {
+                        lastPostID = JSON.parse(lastPostID);
+                        newPostID = JSON.parse(newPostID);
+                        console.info(`ID of previous post is: ${lastPostID}`);
+                        console.info(`ID of latest post is: ${newPostID}`);
+
+                        // Find previous post array index and slice the array to get newer posts
+                        communityPosts.forEach((post, index) => {
+                            if (post.id === lastPostID) {
+                                console.info(index);
+                                const newPosts = communityPosts.slice(0, index);
+                                postContent(newPosts, newPostID);
+                            }
+                        });
+                    }
+                });
+            })
+            .catch(function (error) {
+                console.log(error);
             });
-        })
-        .catch(function (error) {
-            console.log(error);
-        });
+    }
 
+    // Format and send Discord message to channel
     function postContent(newPosts, newPostID) {
         newPosts.forEach((post) => {
-            // Send Discord message to channel
             const postText = post.contentText[0].text;
             console.info(postText);
             if (post.image) {
@@ -93,7 +98,7 @@ client.once("ready", () => {
                 });
             }
         });
-        // TODO: Check this updates
+        // Write the new post ID to the JSON file
         newPostID = JSON.stringify(newPostID);
         fs.writeFile("lastPostID.json", newPostID, function (err) {
             if (err) {

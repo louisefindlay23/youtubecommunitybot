@@ -58,14 +58,16 @@ client.once("ready", () => {
 
     // Format and send Discord message to channel
     function postContent(newPosts, newPostID) {
-        newPosts.forEach((post) => {
+          
+
+  newPosts.forEach((post) => {
             const postText = post.contentText[0].text;
             console.info(postText);
             if (post.image) {
                 const imgURL = post.image.thumbnails[5].url;
                 const imgEmbed = new EmbedBuilder()
                     .setTitle("New YT Image")
-                    .setDescription(`**Description:** ${postText} \n**Post Link:** https://www.youtube.com/post/${post.id}`)
+                    .setDescription(postText)
                     .setImage(imgURL);
                 channel.send({
                     embeds: [imgEmbed],
@@ -87,7 +89,7 @@ client.once("ready", () => {
             } else {
                 const textEmbed = new EmbedBuilder()
                     .setTitle("New YT Post")
-                    .setDescription(`**Post Text:** ${postText} \n**Post Link:** https://www.youtube.com/post/${post.id}`);
+                    .setDescription(postText);
                 channel.send({
                     embeds: [textEmbed],
                 });

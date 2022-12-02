@@ -41,13 +41,6 @@ client.once("ready", () => {
                         console.info(`ID of latest post is: ${newPostID}`);
 
                         // Find previous post array index and slice the array to get newer posts
-                        communityPosts.forEach((post, index) => {
-                            if (post.id === lastPostID) {
-                                console.info(index);
-                                const newPosts = communityPosts.slice(0, index);
-                                postContent(newPosts, newPostID);
-                            }
-                        });
                     }
                 });
             })
@@ -65,7 +58,7 @@ client.once("ready", () => {
                 const imgURL = post.image.thumbnails[5].url;
                 const imgEmbed = new EmbedBuilder()
                     .setTitle("New YT Image")
-                    .setDescription(`**Description:** ${postText} \n**Post Link:** https://www.youtube.com/post/${post.id}`)
+                    .setDescription(postText)
                     .setImage(imgURL);
                 channel.send({
                     embeds: [imgEmbed],
@@ -87,7 +80,7 @@ client.once("ready", () => {
             } else {
                 const textEmbed = new EmbedBuilder()
                     .setTitle("New YT Post")
-                    .setDescription(`**Post Text:** ${postText} \n**Post Link:** https://www.youtube.com/post/${post.id}`);
+                    .setDescription(postText);
                 channel.send({
                     embeds: [textEmbed],
                 });

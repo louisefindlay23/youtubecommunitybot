@@ -16,6 +16,7 @@ client.once("ready", () => {
     // YT API URL for Community Posts with Channel ID
     const URL = `${process.env.YT_API_URL}${process.env.YT_CHANNEL_ID}`;
     // Call YT API every hour
+    callAPI();
     setInterval(callAPI, 3600000);
 
     // Axios GET Request
@@ -27,7 +28,7 @@ client.once("ready", () => {
                 const communityPosts = data.items[0].community;
                 let newPostID = JSON.stringify(communityPosts[0].id);
                 let lastPostID = null;
-
+		console.log(communityPosts[0])
                 // Read previous YT Post ID
                 fs.readFile("./lastPostID.json", "utf8", (err, lastPostID) => {
                     if (err) {
@@ -78,7 +79,7 @@ client.once("ready", () => {
                 const pollEmbed = new EmbedBuilder()
                     .setTitle("New YT Poll")
                     .setDescription(
-                        `**Poll Title:** ${postText} \n**Choices:** \n${choiceArray}\n**Total Votes:** ${post.poll.totalVotes}`
+                        `**Poll Title:** ${postText} \n**Choices:** \n${choiceArray}\n**Total Votes:** ${post.poll.totalVotes} \n**Poll Link:** https://www.youtube.com/post/${post.id}`
                     );
                 channel.send({
                     embeds: [pollEmbed],

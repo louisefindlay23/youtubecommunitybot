@@ -28,7 +28,7 @@ client.once("ready", () => {
                 const communityPosts = data.items[0].community;
                 let newPostID = JSON.stringify(communityPosts[0].id);
                 let lastPostID = null;
-		console.log(communityPosts[0])
+		//console.log(communityPosts[0])
                 // Read previous YT Post ID
                 fs.readFile("./lastPostID.json", "utf8", (err, lastPostID) => {
                     if (err) {
@@ -40,14 +40,20 @@ client.once("ready", () => {
                         console.info(`ID of previous post is: ${lastPostID}`);
                         console.info(`ID of latest post is: ${newPostID}`);
 
+						if (lastPostID === newPostID) {
+							console.info("No new posts");
+						} else {
+						
                         // Find previous post array index and slice the array to get newer posts
                         communityPosts.forEach((post, index) => {
+                        console.info(lastPostID, post.id);
                             if (post.id === lastPostID) {
                                 console.info(index);
                                 const newPosts = communityPosts.slice(0, index);
                                 postContent(newPosts, newPostID);
                             }
                         });
+                    }
                     }
                 });
             })
@@ -61,7 +67,7 @@ client.once("ready", () => {
         newPosts.forEach((post) => {
             const postText = post.contentText[0].text;
             console.info(postText);
-            if (post.image) {
+            if (post.image && post.image.thumbnails[5]) {
                 const imgURL = post.image.thumbnails[5].url;
                 const imgEmbed = new EmbedBuilder()
                     .setTitle("New YT Image")
@@ -69,7 +75,9 @@ client.once("ready", () => {
                     .setImage(imgURL);
                 channel.send({
                     embeds: [imgEmbed],
-                });
+                })
+                  .then(console.log)
+                  .catch(console.error);
             } else if (post.poll) {
                 let choiceArray = [];
                 post.poll.choices.forEach((choice) => {
@@ -83,14 +91,18 @@ client.once("ready", () => {
                     );
                 channel.send({
                     embeds: [pollEmbed],
-                });
+                })
+                  .then(console.log)
+                  .catch(console.error);
             } else {
                 const textEmbed = new EmbedBuilder()
                     .setTitle("New YT Post")
                     .setDescription(`**Post Text:** ${postText} \n**Post Link:** https://www.youtube.com/post/${post.id}`);
                 channel.send({
                     embeds: [textEmbed],
-                });
+                })
+                  .then(console.log)
+                  .catch(console.error);
             }
         });
         // Write the new post ID to the JSON file
